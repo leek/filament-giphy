@@ -34,12 +34,21 @@ window.filamentGiphyPicker = function filamentGiphyPicker(config) {
         loading: false,
         failed: false,
         timer: null,
+        pendingReset: false,
         boot() {
             this.load(true)
         },
         onQuery() {
             clearTimeout(this.timer)
-            this.timer = setTimeout(() => this.load(true), 300)
+            this.timer = setTimeout(() => {
+                if (this.loading) {
+                    this.pendingReset = true
+
+                    return
+                }
+
+                this.load(true)
+            }, 300)
         },
         gridSrc(gif) {
             return mediaUrl(gif, config.gridRendition) ?? mediaUrl(gif, 'fixed_height')
@@ -61,6 +70,10 @@ window.filamentGiphyPicker = function filamentGiphyPicker(config) {
         },
         async load(reset) {
             if (this.loading) {
+                if (reset) {
+                    this.pendingReset = true
+                }
+
                 return
             }
 
@@ -122,6 +135,11 @@ window.filamentGiphyPicker = function filamentGiphyPicker(config) {
             } finally {
                 this.loading = false
             }
+
+            if (this.pendingReset) {
+                this.pendingReset = false
+                await this.load(true)
+            }
         },
         async choose(gif) {
             const src = this.insertedSrc(gif)
@@ -166,6 +184,7 @@ export default function giphyExtension() {
         name: 'giphy',
         group: 'block',
         atom: true,
+        content: '',
         selectable: true,
         draggable: true,
 
@@ -177,19 +196,19 @@ export default function giphyExtension() {
                 },
                 src: {
                     default: null,
-                    parseHTML: (element) => element.querySelector('img')?.getAttribute('src') ?? null,
+                    parseHTML: (element) => (element.matches('img') ? element : element.querySelector('img'))?.getAttribute('src') ?? null,
                 },
                 alt: {
                     default: null,
-                    parseHTML: (element) => element.querySelector('img')?.getAttribute('alt') ?? null,
+                    parseHTML: (element) => (element.matches('img') ? element : element.querySelector('img'))?.getAttribute('alt') ?? null,
                 },
                 width: {
                     default: null,
-                    parseHTML: (element) => numberOrNull(element.querySelector('img')?.getAttribute('width')),
+                    parseHTML: (element) => numberOrNull((element.matches('img') ? element : element.querySelector('img'))?.getAttribute('width')),
                 },
                 height: {
                     default: null,
-                    parseHTML: (element) => numberOrNull(element.querySelector('img')?.getAttribute('height')),
+                    parseHTML: (element) => numberOrNull((element.matches('img') ? element : element.querySelector('img'))?.getAttribute('height')),
                 },
                 username: {
                     default: null,
@@ -207,7 +226,10 @@ export default function giphyExtension() {
         },
 
         parseHTML() {
-            return [{ tag: 'figure[data-giphy-id]' }]
+            return [
+                { tag: 'img[data-giphy-id]', priority: 100 },
+                { tag: 'span[data-giphy-id]', priority: 100 },
+            ]
         },
 
         renderHTML({ node }) {
@@ -215,26 +237,27 @@ export default function giphyExtension() {
             const profileUrl = node.attrs.profileUrl || null
             const sourceUrl = node.attrs.sourceUrl || null
             const src = node.attrs.src || null
-            const figure = {
+            const host = {
                 'data-giphy-id': node.attrs.id,
             }
 
             if (username) {
-                figure['data-giphy-username'] = username
+                host['data-giphy-username'] = username
             }
 
             if (profileUrl) {
-                figure['data-giphy-profile-url'] = profileUrl
+                host['data-giphy-profile-url'] = profileUrl
             }
 
             if (sourceUrl) {
-                figure['data-giphy-source-url'] = sourceUrl
+                host['data-giphy-source-url'] = sourceUrl
             }
 
             const children = []
 
             if (typeof src === 'string' && src.startsWith('https://')) {
                 const image = {
+                    ...host,
                     src,
                     alt: node.attrs.alt || 'GIF',
                 }
@@ -248,19 +271,25 @@ export default function giphyExtension() {
                 }
 
                 children.push(['img', image])
+            } else {
+                children.push(['span', host])
             }
 
             if (username) {
                 const href = profileUrl || sourceUrl
-
-                children.push(
+                const caption =
                     typeof href === 'string' && href.startsWith('https://')
-                        ? ['figcaption', {}, ['a', { href, rel: 'noopener noreferrer' }, username]]
-                        : ['figcaption', {}, username],
-                )
+                        ? [
+                              'figcaption',
+                              { class: 'fi-giphy-credit' },
+                              ['a', { href, 'data-label': username, rel: 'noopener noreferrer' }],
+                          ]
+                        : ['figcaption', { class: 'fi-giphy-credit', 'data-label': username }]
+
+                children.push(caption)
             }
 
-            return ['figure', figure, ...children]
+            return ['figure', { class: 'fi-giphy-figure' }, ...children]
         },
     })
 }

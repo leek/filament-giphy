@@ -1,8 +1,11 @@
 <?php
 
+use Filament\Forms\Components\RichEditor\TipTapExtensions\ImageExtension;
 use Leek\FilamentGiphy\TipTap\GiphyExtension;
 use Tiptap\Editor;
+use Tiptap\Marks\Link;
 use Tiptap\Nodes\Document;
+use Tiptap\Nodes\Text;
 
 function giphyDocument(array $attrs): array
 {
@@ -75,7 +78,7 @@ it('links the creator name to the profile URL', function () {
     $attrs = parseGiphy($html);
 
     expect($html)->toContain('href="https://giphy.com/channel/moodman"')
-        ->and($html)->toContain('<figcaption>')
+        ->and($html)->toContain('<figcaption')
         ->and($attrs['username'])->toBe('moodman')
         ->and($attrs['profileUrl'])->toBe('https://giphy.com/channel/moodman')
         ->and($attrs['sourceUrl'])->toBe('https://giphy.com/gifs/abc');
@@ -105,8 +108,48 @@ it('shows the creator name as text when no URL is stored', function () {
         'sourceUrl' => null,
     ]);
 
-    expect($html)->toContain('<figcaption>moodman</figcaption>')
+    expect($html)->toContain('data-label="moodman"')
+        ->and($html)->toContain('<figcaption')
         ->and($html)->not->toContain('<a ');
+});
+
+it('parses a rendered GIF as an atom alongside image, text, and link', function () {
+    $src = 'https://media.giphy.com/media/abc/giphy.gif?cid=abc&rid=giphy';
+
+    $html = renderGiphy([
+        'id' => 'abc',
+        'src' => $src,
+        'alt' => 'A cat',
+        'width' => 200,
+        'height' => 100,
+        'username' => 'moodman',
+        'profileUrl' => 'https://giphy.com/channel/moodman',
+        'sourceUrl' => 'https://giphy.com/gifs/abc',
+    ]);
+
+    $document = (new Editor([
+        'extensions' => [
+            new Document,
+            new Text,
+            new ImageExtension,
+            new Link,
+            new GiphyExtension,
+        ],
+    ]))->setContent($html)->getDocument();
+
+    $giphy = collect($document['content'])->firstWhere('type', 'giphy');
+
+    expect($giphy)->toBeArray()
+        ->and($giphy)->not->toHaveKey('content')
+        ->and(collect($document['content'])->pluck('type')->all())->toBe(['giphy'])
+        ->and($giphy['attrs']['id'])->toBe('abc')
+        ->and($giphy['attrs']['src'])->toBe($src)
+        ->and($giphy['attrs']['alt'])->toBe('A cat')
+        ->and($giphy['attrs']['width'])->toBe(200)
+        ->and($giphy['attrs']['height'])->toBe(100)
+        ->and($giphy['attrs']['username'])->toBe('moodman')
+        ->and($giphy['attrs']['profileUrl'])->toBe('https://giphy.com/channel/moodman')
+        ->and($giphy['attrs']['sourceUrl'])->toBe('https://giphy.com/gifs/abc');
 });
 
 it('omits the credit line when the GIF has no creator', function () {

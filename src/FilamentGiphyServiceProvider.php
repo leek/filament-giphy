@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Leek\FilamentGiphy;
 
+use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Spatie\LaravelPackageTools\Package;
@@ -24,6 +25,7 @@ class FilamentGiphyServiceProvider extends PackageServiceProvider
     public function packageBooted(): void
     {
         FilamentAsset::register([
+            Css::make('giphy', __DIR__.'/../resources/css/giphy.css'),
             Js::make('rich-content-plugins/giphy', __DIR__.'/../resources/js/dist/filament/rich-content-plugins/giphy.js')->loadedOnRequest(),
         ], 'leek/filament-giphy');
     }

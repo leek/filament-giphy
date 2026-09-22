@@ -15,7 +15,12 @@ class GiphyExtension extends Node
     {
         return [
             [
-                'tag' => 'figure[data-giphy-id]',
+                'tag' => 'img[data-giphy-id]',
+                'priority' => 100,
+            ],
+            [
+                'tag' => 'span[data-giphy-id]',
+                'priority' => 100,
             ],
         ];
     }
@@ -25,51 +30,35 @@ class GiphyExtension extends Node
         return [
             'id' => [
                 'default' => null,
-                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($DOMNode, 'data-giphy-id'),
+                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($this->host($DOMNode), 'data-giphy-id'),
             ],
             'src' => [
                 'default' => null,
-                'parseHTML' => function (DOMElement $DOMNode): ?string {
-                    $image = $DOMNode->getElementsByTagName('img')->item(0);
-
-                    if (! $image instanceof DOMElement) {
-                        return null;
-                    }
-
-                    return $this->attribute($image, 'src');
-                },
+                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($this->host($DOMNode), 'src'),
             ],
             'alt' => [
                 'default' => null,
-                'parseHTML' => function (DOMElement $DOMNode): ?string {
-                    $image = $DOMNode->getElementsByTagName('img')->item(0);
-
-                    if (! $image instanceof DOMElement) {
-                        return null;
-                    }
-
-                    return $this->attribute($image, 'alt');
-                },
+                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($this->host($DOMNode), 'alt'),
             ],
             'width' => [
                 'default' => null,
-                'parseHTML' => fn (DOMElement $DOMNode): ?int => $this->dimension($DOMNode, 'width'),
+                'parseHTML' => fn (DOMElement $DOMNode): ?int => $this->dimension($this->host($DOMNode), 'width'),
             ],
             'height' => [
                 'default' => null,
-                'parseHTML' => fn (DOMElement $DOMNode): ?int => $this->dimension($DOMNode, 'height'),
+                'parseHTML' => fn (DOMElement $DOMNode): ?int => $this->dimension($this->host($DOMNode), 'height'),
             ],
             'username' => [
                 'default' => null,
-                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($DOMNode, 'data-giphy-username'),
+                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($this->host($DOMNode), 'data-giphy-username'),
             ],
             'profileUrl' => [
                 'default' => null,
-                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($DOMNode, 'data-giphy-profile-url'),
+                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($this->host($DOMNode), 'data-giphy-profile-url'),
             ],
             'sourceUrl' => [
                 'default' => null,
-                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($DOMNode, 'data-giphy-source-url'),
+                'parseHTML' => fn (DOMElement $DOMNode): ?string => $this->attribute($this->host($DOMNode), 'data-giphy-source-url'),
             ],
         ];
     }
@@ -86,26 +75,29 @@ class GiphyExtension extends Node
         $width = $this->intValue($attributes->width ?? null);
         $height = $this->intValue($attributes->height ?? null);
 
-        $figure = [
+        $host = [
             'data-giphy-id' => $id,
             'data-giphy-username' => $username,
             'data-giphy-profile-url' => $profileUrl,
             'data-giphy-source-url' => $sourceUrl,
         ];
 
-        $html = '<figure'.$this->attributes($figure).'>';
+        $html = '<figure class="fi-giphy-figure">';
 
         if (is_string($src) && str_starts_with($src, 'https://')) {
             $html .= '<img'.$this->attributes([
+                ...$host,
                 'src' => $src,
                 'alt' => $alt,
                 'width' => $width,
                 'height' => $height,
             ]).'>';
+        } else {
+            $html .= '<span'.$this->attributes($host).'></span>';
         }
 
         if (is_string($username)) {
-            $html .= '<figcaption>'.$this->credit($username, $profileUrl, $sourceUrl).'</figcaption>';
+            $html .= $this->credit($username, $profileUrl, $sourceUrl);
         }
 
         $html .= '</figure>';
@@ -118,13 +110,32 @@ class GiphyExtension extends Node
     protected function credit(string $username, ?string $profileUrl, ?string $sourceUrl): string
     {
         $href = $profileUrl ?? $sourceUrl;
-        $name = $this->escape($username);
+        $label = $this->escape($username);
 
         if (! is_string($href) || ! str_starts_with($href, 'https://')) {
-            return $name;
+            return '<figcaption class="fi-giphy-credit" data-label="'.$label.'"></figcaption>';
         }
 
-        return '<a href="'.$this->escape($href).'" rel="noopener noreferrer">'.$name.'</a>';
+        return '<figcaption class="fi-giphy-credit"><a href="'.$this->escape($href).'" data-label="'.$label.'" rel="noopener noreferrer"></a></figcaption>';
+    }
+
+    protected function host(DOMElement $element): DOMElement
+    {
+        $name = strtolower($element->nodeName);
+
+        if (in_array($name, ['img', 'span'], true)) {
+            return $element;
+        }
+
+        $image = $element->getElementsByTagName('img')->item(0);
+
+        if ($image instanceof DOMElement) {
+            return $image;
+        }
+
+        $span = $element->getElementsByTagName('span')->item(0);
+
+        return $span instanceof DOMElement ? $span : $element;
     }
 
     /**
@@ -156,13 +167,11 @@ class GiphyExtension extends Node
 
     protected function dimension(DOMElement $element, string $name): ?int
     {
-        $image = $element->getElementsByTagName('img')->item(0);
-
-        if (! $image instanceof DOMElement) {
+        if (! $element->hasAttribute($name)) {
             return null;
         }
 
-        return $this->intValue($image->getAttribute($name));
+        return $this->intValue($element->getAttribute($name));
     }
 
     protected function stringValue(mixed $value): ?string

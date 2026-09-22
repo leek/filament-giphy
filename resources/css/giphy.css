@@ -1,0 +1,8 @@
+.fi-giphy-figure {
+    margin: 0;
+}
+
+.fi-giphy-figure figcaption.fi-giphy-credit::before,
+.fi-giphy-figure figcaption.fi-giphy-credit a::before {
+    content: attr(data-label);
+}
