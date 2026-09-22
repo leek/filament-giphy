@@ -51,7 +51,6 @@ use Leek\FilamentGiphy\FilamentGiphyPlugin;
 
 $panel->plugin(
     FilamentGiphyPlugin::make()
-        ->apiKey(env('GIPHY_API_KEY'))
         ->rating('pg-13')
         ->gridRendition('fixed_height_small')
         ->insertedRendition('original'),
