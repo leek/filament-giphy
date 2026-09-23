@@ -96,27 +96,11 @@ class GiphyExtension extends Node
             $html .= '<span'.$this->attributes($host).'></span>';
         }
 
-        if (is_string($username)) {
-            $html .= $this->credit($username, $profileUrl, $sourceUrl);
-        }
-
         $html .= '</figure>';
 
         return [
             'content' => $html,
         ];
-    }
-
-    protected function credit(string $username, ?string $profileUrl, ?string $sourceUrl): string
-    {
-        $href = $profileUrl ?? $sourceUrl;
-        $label = $this->escape($username);
-
-        if (! is_string($href) || ! str_starts_with($href, 'https://')) {
-            return '<figcaption class="fi-giphy-credit" data-label="'.$label.'"></figcaption>';
-        }
-
-        return '<figcaption class="fi-giphy-credit"><a href="'.$this->escape($href).'" data-label="'.$label.'" rel="noopener noreferrer"></a></figcaption>';
     }
 
     protected function host(DOMElement $element): DOMElement

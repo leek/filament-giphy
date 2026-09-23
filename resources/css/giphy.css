@@ -2,7 +2,75 @@
     margin: 0;
 }
 
-.fi-giphy-figure figcaption.fi-giphy-credit::before,
-.fi-giphy-figure figcaption.fi-giphy-credit a::before {
-    content: attr(data-label);
+.fi-modal-content:has(.fi-giphy-picker) {
+    min-height: 0;
+}
+
+.fi-modal-content :has(.fi-giphy-picker) {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+}
+
+.fi-giphy-picker {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: min(36rem, 70dvh);
+}
+
+.fi-giphy-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+}
+
+.fi-giphy-results {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.fi-giphy-grid {
+    columns: 4 10rem;
+    column-gap: 0.5rem;
+}
+
+.fi-giphy-result {
+    display: block;
+    width: 100%;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0.5rem;
+    background: rgb(3 7 18 / 0.05);
+    break-inside: avoid;
+    cursor: pointer;
+}
+
+.fi-giphy-result:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.fi-giphy-result img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.fi-giphy-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.75rem;
+}
+
+.fi-giphy-more {
+    font-size: 0.875rem;
+    text-decoration: underline;
 }

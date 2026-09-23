@@ -23,48 +23,60 @@
     <p x-show="! ready">Loading the GIF picker.</p>
 
     <template x-if="ready">
-        <div class="space-y-3">
-            <input
-                type="search"
-                x-model="query"
-                x-on:input="onQuery()"
-                placeholder="Search GIFs"
-                class="fi-input block w-full"
-            />
+        <div class="fi-giphy-body">
+            <div class="fi-input-wrp">
+                <div class="fi-input-wrp-content-ctn">
+                    <input
+                        type="search"
+                        x-model="query"
+                        x-on:input="onQuery()"
+                        placeholder="Search GIFs"
+                        aria-label="Search GIFs"
+                        class="fi-input"
+                    />
+                </div>
+            </div>
 
             <p x-show="failed">GIPHY did not return GIFs. The document was not changed.</p>
 
-            <div class="grid max-h-96 grid-cols-3 gap-2 overflow-y-auto">
-                <template x-for="gif in gifs" :key="gif.id">
-                    <button
-                        type="button"
-                        class="overflow-hidden rounded-lg bg-gray-950/5"
-                        x-on:click="choose(gif)"
-                        x-bind:disabled="! canInsert(gif)"
-                    >
-                        <img
-                            x-show="gridSrc(gif)"
-                            x-bind:src="gridSrc(gif)"
-                            x-bind:alt="gif.title || 'GIF'"
-                            class="h-28 w-full object-cover"
-                        />
-                    </button>
-                </template>
+            <div class="fi-giphy-results">
+                <div class="fi-giphy-grid">
+                    <template x-for="gif in gifs" :key="gif.id">
+                        <button
+                            type="button"
+                            class="fi-giphy-result"
+                            x-on:click="choose(gif)"
+                            x-bind:disabled="! canInsert(gif)"
+                            x-bind:aria-label="gif.title || 'GIF'"
+                        >
+                            <img
+                                x-show="gridSrc(gif)"
+                                x-bind:src="gridSrc(gif)"
+                                x-bind:alt="gif.title || 'GIF'"
+                                x-bind:width="gridWidth(gif)"
+                                x-bind:height="gridHeight(gif)"
+                                loading="lazy"
+                            />
+                        </button>
+                    </template>
+                </div>
             </div>
 
-            <button
-                type="button"
-                class="text-sm underline"
-                x-show="hasMore()"
-                x-on:click="load(false)"
-                x-bind:disabled="loading"
-            >
-                More GIFs
-            </button>
+            <div class="fi-giphy-footer">
+                <button
+                    type="button"
+                    class="fi-giphy-more"
+                    x-show="hasMore()"
+                    x-on:click="load(false)"
+                    x-bind:disabled="loading"
+                >
+                    More GIFs
+                </button>
+
+                <span>Powered by GIPHY</span>
+            </div>
         </div>
     </template>
-
-    <p class="mt-3 text-xs">Powered by GIPHY</p>
 
     <script type="module" src="{{ $scriptUrl }}"></script>
 </div>

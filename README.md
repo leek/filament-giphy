@@ -44,7 +44,7 @@ An empty key hides the toolbar button.
 
 ## Panel overrides
 
-Register the panel plugin when one panel needs a different key, rating, or rendition. Fields outside a panel, and panels without the plugin, use the config file.
+Register the panel plugin when one panel needs a different key, rating, rendition, or picker icon. Fields outside a panel, and panels without the plugin, use the config file.
 
 ```php
 use Leek\FilamentGiphy\FilamentGiphyPlugin;
@@ -52,18 +52,22 @@ use Leek\FilamentGiphy\FilamentGiphyPlugin;
 $panel->plugin(
     FilamentGiphyPlugin::make()
         ->rating('pg-13')
-        ->gridRendition('fixed_height_small')
-        ->insertedRendition('original'),
+        ->gridRendition('fixed_width')
+        ->insertedRendition('original')
+        ->modalIcon('heroicon-o-gif')
+        ->modalIconColor('primary'),
 );
 ```
 
 The default rating is `pg-13`. Allowed values are `g`, `pg`, `pg-13`, and `r`. Anything else resolves to `pg-13`.
 
+The picker modal shows the `o-gif` Heroicon in `primary`. Set `modal_icon` and `modal_icon_color` in the config, or use the panel methods above, to match your icon set.
+
 ## What gets stored
 
-A click copies the configured rendition's `url` into a `giphy` block. The default inserted rendition is `original`. The grid uses `fixed_height_small`, then `fixed_height` when that preview is missing. A missing inserted rendition inserts nothing. The package does not rewrite the URL's query string.
+A click copies the configured rendition's `url` into a `giphy` block. The default inserted rendition is `original`. The grid uses `fixed_width`, then `fixed_height` when that preview is missing, and lays the previews out at their own aspect ratio. A missing inserted rendition inserts nothing. The package does not rewrite the URL's query string.
 
-The block renders a `figure`. An `https` media URL becomes the image. Any other scheme renders no image. When GIPHY sends a creator, the name sits under the GIF and links to that creator's page, or to the GIF page when the profile URL is empty.
+The block renders a `figure` holding only the GIF. An `https` media URL becomes the image. Any other scheme renders no image. The creator's name and links are kept as `data-giphy-*` attributes, not shown.
 
 ## GIPHY
 
