@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Leek\FilamentGiphy;
 
+use BackedEnum;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 
@@ -64,6 +65,20 @@ class FilamentGiphyPlugin implements Plugin
     public function insertedRendition(string $insertedRendition): static
     {
         $this->overrides['inserted_rendition'] = $insertedRendition;
+
+        return $this;
+    }
+
+    public function modalIcon(string|BackedEnum $icon): static
+    {
+        $this->overrides['modal_icon'] = $icon;
+
+        return $this;
+    }
+
+    public function modalIconColor(string $color): static
+    {
+        $this->overrides['modal_icon_color'] = $color;
 
         return $this;
     }

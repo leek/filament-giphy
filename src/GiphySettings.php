@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Leek\FilamentGiphy;
 
+use BackedEnum;
 use Filament\Panel;
+use Filament\Support\Icons\Heroicon;
 
 class GiphySettings
 {
@@ -38,12 +40,34 @@ class GiphySettings
 
     public function gridRendition(): string
     {
-        return $this->rendition('grid_rendition', 'fixed_height_small');
+        return $this->rendition('grid_rendition', 'fixed_width');
     }
 
     public function insertedRendition(): string
     {
         return $this->rendition('inserted_rendition', 'original');
+    }
+
+    public function modalIcon(): string|BackedEnum
+    {
+        $icon = $this->panelPlugin?->hasOverride('modal_icon')
+            ? $this->panelPlugin->getOverride('modal_icon')
+            : config('filament-giphy.modal_icon');
+
+        if ($icon instanceof BackedEnum) {
+            return $icon;
+        }
+
+        return self::filledString($icon) ?? Heroicon::OutlinedGif;
+    }
+
+    public function modalIconColor(): string
+    {
+        $color = $this->panelPlugin?->hasOverride('modal_icon_color')
+            ? $this->panelPlugin->getOverride('modal_icon_color')
+            : config('filament-giphy.modal_icon_color');
+
+        return self::filledString($color) ?? 'primary';
     }
 
     public function language(): ?string

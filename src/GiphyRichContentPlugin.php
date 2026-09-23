@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Leek\FilamentGiphy;
 
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
@@ -61,6 +62,8 @@ class GiphyRichContentPlugin implements HasToolbarButtons, RichContentPlugin
         return [
             Action::make('giphy')
                 ->modalHeading('Search GIFs')
+                ->modalIcon(fn (): string|BackedEnum => $this->settings()->modalIcon())
+                ->modalIconColor(fn (): string => $this->settings()->modalIconColor())
                 ->modalWidth(Width::FiveExtraLarge)
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel('Close')

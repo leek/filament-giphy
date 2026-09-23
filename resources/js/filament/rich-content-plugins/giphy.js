@@ -50,8 +50,23 @@ window.filamentGiphyPicker = function filamentGiphyPicker(config) {
                 this.load(true)
             }, 300)
         },
+        gridRendition(gif) {
+            for (const name of [config.gridRendition, 'fixed_width', 'fixed_height']) {
+                if (mediaUrl(gif, name) !== null) {
+                    return gif.images[name]
+                }
+            }
+
+            return null
+        },
         gridSrc(gif) {
-            return mediaUrl(gif, config.gridRendition) ?? mediaUrl(gif, 'fixed_height')
+            return this.gridRendition(gif)?.url ?? null
+        },
+        gridWidth(gif) {
+            return numberOrNull(this.gridRendition(gif)?.width)
+        },
+        gridHeight(gif) {
+            return numberOrNull(this.gridRendition(gif)?.height)
         },
         insertedSrc(gif) {
             const url = mediaUrl(gif, config.insertedRendition)
@@ -273,20 +288,6 @@ export default function giphyExtension() {
                 children.push(['img', image])
             } else {
                 children.push(['span', host])
-            }
-
-            if (username) {
-                const href = profileUrl || sourceUrl
-                const caption =
-                    typeof href === 'string' && href.startsWith('https://')
-                        ? [
-                              'figcaption',
-                              { class: 'fi-giphy-credit' },
-                              ['a', { href, 'data-label': username, rel: 'noopener noreferrer' }],
-                          ]
-                        : ['figcaption', { class: 'fi-giphy-credit', 'data-label': username }]
-
-                children.push(caption)
             }
 
             return ['figure', { class: 'fi-giphy-figure' }, ...children]

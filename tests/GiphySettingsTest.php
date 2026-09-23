@@ -1,6 +1,7 @@
 <?php
 
 use Filament\Panel;
+use Filament\Support\Icons\Heroicon;
 use Leek\FilamentGiphy\FilamentGiphyPlugin;
 use Leek\FilamentGiphy\GiphyRichContentPlugin;
 
@@ -56,10 +57,10 @@ it('enables the GIF tool when an API key is configured', function () {
         ->and($plugin->getEnabledToolbarButtons())->toBe(['giphy']);
 });
 
-it('uses the small fixed-height grid rendition and the original inserted rendition', function () {
+it('uses the fixed-width grid rendition and the original inserted rendition', function () {
     $plugin = GiphyRichContentPlugin::make();
 
-    expect($plugin->gridRendition())->toBe('fixed_height_small')
+    expect($plugin->gridRendition())->toBe('fixed_width')
         ->and($plugin->insertedRendition())->toBe('original');
 });
 
@@ -83,4 +84,32 @@ it('lets a panel rendition override config', function () {
 
     expect($plugin->gridRendition())->toBe('fixed_width')
         ->and($plugin->insertedRendition())->toBe('downsized');
+});
+
+it('gives the picker modal a GIF icon in the primary color', function () {
+    config(['filament-giphy.api_key' => 'test-key']);
+
+    $action = GiphyRichContentPlugin::make()->getEditorActions()[0];
+
+    expect($action->getModalIcon())->toBe(Heroicon::OutlinedGif)
+        ->and($action->getModalIconColor())->toBe('primary');
+});
+
+it('lets a panel override the picker modal icon and color', function () {
+    config(['filament-giphy.api_key' => 'test-key']);
+
+    $panel = Panel::make()
+        ->id('admin')
+        ->plugin(
+            FilamentGiphyPlugin::make()
+                ->modalIcon('phosphor-gif-duotone')
+                ->modalIconColor('gray'),
+        );
+
+    filament()->setCurrentPanel($panel);
+
+    $action = GiphyRichContentPlugin::make()->getEditorActions()[0];
+
+    expect($action->getModalIcon())->toBe('phosphor-gif-duotone')
+        ->and($action->getModalIconColor())->toBe('gray');
 });

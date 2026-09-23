@@ -35,9 +35,22 @@ return [
     |
     */
 
-    'grid_rendition' => 'fixed_height_small',
+    'grid_rendition' => 'fixed_width',
 
     'inserted_rendition' => 'original',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Picker modal icon
+    |--------------------------------------------------------------------------
+    |
+    | Any icon name or enum Filament accepts, and a Filament color name.
+    |
+    */
+
+    'modal_icon' => null,
+
+    'modal_icon_color' => 'primary',
 
     /*
     |--------------------------------------------------------------------------
